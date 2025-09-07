@@ -2,14 +2,17 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"net"
 	"os"
 	"os/signal"
 	"time"
 
-	"github.com/ialekseychuk/my-place-auth/internal/auth"
-	"github.com/ialekseychuk/my-place-auth/internal/repository"
-	authv1 "github.com/ialekseychuk/my-place-proto/gen/go/auth/v1"
+	"github.com/ialekseychuk/my-place-identity/internal/config"
+	"github.com/ialekseychuk/my-place-identity/internal/repository"
+	grpcSvc "github.com/ialekseychuk/my-place-identity/internal/transport/grpc"
+	identityv1 "github.com/ialekseychuk/my-place-proto/gen/go/identity/v1"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -19,8 +22,12 @@ func main() {
 
 	ctx := context.Background()
 
-	dsn := os.Getenv("POSTGRES_DSN")
-	pool, err := pgxpool.New(ctx, dsn)
+	config, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("failed to load config: %v", err)
+	}
+
+	pool, err := pgxpool.New(ctx, config.POSTGRES_DSN)
 	if err != nil {
 		logrus.Fatalf("unable to connect to database: %v", err)
 
@@ -33,16 +40,15 @@ func main() {
 	logrus.Println("Connected to the database")
 
 	userRepo := repository.NewRepository(pool)
-	secret := os.Getenv("JWT_SECRET")
-	authService := auth.NewAuthService(userRepo, secret)
+	identityHandler := grpcSvc.NewIdentityHandler(userRepo, config.JWT_SECRET)
 
-	lis, err := net.Listen("tcp", ":50051")
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", config.Port))
 	if err != nil {
 		logrus.Fatalf("failed to listen: %v", err)
 	}
 
 	grpcServer := grpc.NewServer()
-	authv1.RegisterAuthServer(grpcServer, authService)
+	identityv1.RegisterAuthServer(grpcServer, identityHandler)
 
 	go func() {
 		logrus.Println("Starting gRPC server on :50051")
