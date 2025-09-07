@@ -10,13 +10,17 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/cmd/auth",
+            "program": "${workspaceFolder}/cmd/identity",
             "env": {
                 "APP_ENV": "local",
                 "APP_HTTP_PORT": "8080",
-                "POSTGRES_DSN": "postgres://postgres:postgres@localhost:5432/myplace?sslmode=disable",
+                "POSTGRES_DSN": "postgres://postgres:postgres@localhost:5432/identity?sslmode=disable",
                 "REDIS_ADDR": "localhost:6379",
-                "JWT_SECRET": "your-super-secret-jwt-key-here-change-in-production"
+                "PORT" : "50051",
+                "JWT_SECRET": "secret",
+                "ACCESS_TTL":"12h",
+                "REFRESH_TTL":"24h"
+
             },
             "args": [],
             "showLog": true,

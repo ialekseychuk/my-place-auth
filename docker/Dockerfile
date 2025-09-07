@@ -7,7 +7,7 @@ COPY . .
 ENV CGO_ENABLED=0
 ENV GOOS=linux
 
-RUN go build -o main cmd/auth/main.go
+RUN go build -o main cmd/identity/main.go
 
 FROM alpine:3.18
 

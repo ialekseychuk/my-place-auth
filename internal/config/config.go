@@ -9,9 +9,11 @@ import (
 )
 
 type Config struct {
-	Port         int    `env:"PORT"`
-	JWT_SECRET   string `env:"JWT_SECRET"`
-	POSTGRES_DSN string `env:"POSTGRES_DSN"`
+	Port         int           `env:"PORT"`
+	JWT_SECRET   string        `env:"JWT_SECRET"`
+	POSTGRES_DSN string        `env:"POSTGRES_DSN"`
+	AccessTTL    time.Duration `env:"ACCESS_TTL"`
+	RefreshTTL   time.Duration `env:"REFRESH_TTL"`
 }
 
 func LoadConfig() (*Config, error) {
